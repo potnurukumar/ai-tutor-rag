@@ -7,12 +7,14 @@ embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-# Get correct absolute path (IMPORTANT for Streamlit Cloud)
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-VECTOR_PATH = os.path.join(BASE_DIR, "vectorstore")
+# ALWAYS use absolute working directory (Streamlit-safe)
+VECTOR_PATH = os.path.abspath("vectorstore")
 
 
 def load_vectorstore():
+    if not os.path.exists(VECTOR_PATH):
+        raise FileNotFoundError(f"Vectorstore not found at {VECTOR_PATH}")
+
     return FAISS.load_local(
         VECTOR_PATH,
         embeddings,
@@ -24,10 +26,6 @@ vector_store = load_vectorstore()
 
 
 def retrieve_context(query):
-    """
-    Retrieve top 3 relevant chunks
-    """
-
     try:
         docs = vector_store.similarity_search(query, k=3)
 
@@ -39,5 +37,5 @@ def retrieve_context(query):
         return context, docs
 
     except Exception as e:
-        print(f"Retriever Error: {e}")
+        print("Retriever Error:", e)
         return "", []
