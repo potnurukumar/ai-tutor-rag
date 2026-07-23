@@ -7,7 +7,10 @@ import os
 load_dotenv()
 
 # Get API key from .env (local) or Streamlit Secrets (cloud)
-api_key = os.getenv("GEMINI_API_KEY")
+from src.config import GEMINI_API_KEY
+
+api_key = GEMINI_API_KEY
+
 
 if not api_key:
     api_key = st.secrets.get("GEMINI_API_KEY")

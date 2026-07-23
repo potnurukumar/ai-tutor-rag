@@ -1,19 +1,36 @@
 import os
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# Load embedding model once
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+
+from src.config import VECTORSTORE_DIR
+from src.logger import logger
+
+# ----------------------------------------
+# Embedding Model
+# ----------------------------------------
+
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-# ALWAYS use absolute working directory (Streamlit-safe)
-VECTOR_PATH = os.path.abspath("vectorstore")
+# ----------------------------------------
+# Vectorstore Path
+# ----------------------------------------
 
+VECTOR_PATH = VECTORSTORE_DIR
+
+logger.info(f"Loading vectorstore from: {VECTOR_PATH}")
+
+# ----------------------------------------
+# Load FAISS Vector Store
+# ----------------------------------------
 
 def load_vectorstore():
     if not os.path.exists(VECTOR_PATH):
-        raise FileNotFoundError(f"Vectorstore not found at {VECTOR_PATH}")
+        raise FileNotFoundError(
+            f"Vectorstore not found: {VECTOR_PATH}"
+        )
 
     return FAISS.load_local(
         VECTOR_PATH,
@@ -21,11 +38,14 @@ def load_vectorstore():
         allow_dangerous_deserialization=True
     )
 
-
+# Load once during application startup
 vector_store = load_vectorstore()
 
+# ----------------------------------------
+# Retrieve Context
+# ----------------------------------------
 
-def retrieve_context(query):
+def retrieve_context(query: str):
     try:
         docs = vector_store.similarity_search(query, k=3)
 
@@ -36,6 +56,6 @@ def retrieve_context(query):
 
         return context, docs
 
-    except Exception as e:
-        print("Retriever Error:", e)
+    except Exception:
+        logger.exception("Retriever error")
         return "", []

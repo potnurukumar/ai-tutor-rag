@@ -1,9 +1,14 @@
-from loader import load_documents
-from splitter import split_documents
-from embeddings import create_vector_store
+from src.loader import load_documents
+from src.splitter import split_documents
+from src.embeddings import create_vector_store
 
-documents = load_documents("data")
-chunks = split_documents(documents)
+print("Loading documents...")
+docs = load_documents("data")
+
+print("Splitting...")
+chunks = split_documents(docs)
+
+print("Building FAISS...")
 create_vector_store(chunks)
 
-print("Vectorstore rebuilt")
+print("DONE - Vectorstore created successfully")
